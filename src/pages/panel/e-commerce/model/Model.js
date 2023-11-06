@@ -25,7 +25,7 @@ import Content from "../../../../layout/content/Content";
 import Head from "../../../../layout/head/Head";
 import { productData } from "../product/ProductData";
 
-const ProductList = () => {
+const Model = () => {
   const [data, setData] = useState(productData);
   const [sm, updateSm] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState([]);
@@ -48,8 +48,16 @@ const ProductList = () => {
   };
 
   const [formData, setFormData] = useState({
-    Name: "",
-    Image: null,
+    name: "",
+    img: null,
+    sku: "",
+    price: 0,
+    salePrice: 0,
+    stock: 0,
+    category: [],
+    fav: false,
+    check: false,
+    description: "",
   });
   const [editId, setEditedId] = useState();
   const [view, setView] = useState({
@@ -82,8 +90,15 @@ const ProductList = () => {
 
   const resetForm = () => {
     setFormData({
-      Name: "",
-      Image: null,
+      name: "",
+      img: null,
+      sku: "",
+      price: 0,
+      salePrice: 0,
+      stock: 0,
+      category: [],
+      fav: false,
+      check: false,
     });
     reset({});
   };
@@ -92,13 +107,18 @@ const ProductList = () => {
     const { title, price, salePrice, sku, stock } = form;
     let submittedData = {
       id: data.length + 1,
-      Name: title,
-      Image: files.length > 0 ? files[0].preview : ProductH,
+      name: title,
+      img: files.length > 0 ? files[0].preview : ProductH,
+      sku: sku,
+      price: price,
+      salePrice: salePrice,
+      stock: stock,
+      category: formData.category,
+      fav: false,
+      check: false,
     };
-
-    console.log("formData", formData);
     setData([submittedData, ...data]);
-
+    setView({ open: false });
     setFiles([]);
     resetForm();
   };
@@ -135,8 +155,14 @@ const ProductList = () => {
     data.forEach((item) => {
       if (item.id === id) {
         setFormData({
-          Name: item.Name,
-          Image: item.Image,
+          name: item.name,
+          img: item.img,
+          sku: item.sku,
+          price: item.price,
+          stock: item.stock,
+          category: item.category,
+          fav: false,
+          check: false,
         });
       }
     });
@@ -179,6 +205,13 @@ const ProductList = () => {
     setData([...defaultData]);
   };
 
+  // function to delete the seletected item
+  const selectorDeleteProduct = () => {
+    let newData;
+    newData = data.filter((item) => item.check !== true);
+    setData([...newData]);
+  };
+
   // toggle function to view product details
   const toggle = (type) => {
     setView({
@@ -218,7 +251,6 @@ const ProductList = () => {
     <React.Fragment>
       <Head title="Products"></Head>
       <Content>
-        {/* Header Part Start */}
         <BlockHead size="sm">
           <BlockBetween>
             <BlockHeadContent>
@@ -299,7 +331,7 @@ const ProductList = () => {
                         }}
                       >
                         <Icon name="plus"></Icon>
-                        <span>Add Category</span>
+                        <span>Add Model</span>
                       </Button>
                     </li>
                   </ul>
@@ -308,8 +340,6 @@ const ProductList = () => {
             </BlockHeadContent>
           </BlockBetween>
         </BlockHead>
-
-        {/* Header Part End */}
 
         <Block>
           <div className="nk-tb-list is-separate is-medium mb-3">
@@ -328,7 +358,9 @@ const ProductList = () => {
               <DataTableRow size="sm">
                 <span>Name</span>
               </DataTableRow>
-
+              <DataTableRow>
+                <span>SKU</span>
+              </DataTableRow>
               <DataTableRow>
                 <span>Price</span>
               </DataTableRow>
@@ -338,7 +370,9 @@ const ProductList = () => {
               <DataTableRow size="md">
                 <span>Category</span>
               </DataTableRow>
-
+              <DataTableRow size="md">
+                <Icon name="star-round" className="tb-asterisk"></Icon>
+              </DataTableRow>
               <DataTableRow className="nk-tb-col-tools">
                 <ul className="nk-tb-actions gx-1 my-n1">
                   <li className="me-n1">
@@ -351,6 +385,41 @@ const ProductList = () => {
                       >
                         <Icon name="more-h"></Icon>
                       </DropdownToggle>
+                      {/* <DropdownMenu end>
+                        <ul className="link-list-opt no-bdr">
+                          <li>
+                            <DropdownItem tag="a" href="#edit" onClick={(ev) => ev.preventDefault()}>
+                              <Icon name="edit"></Icon>
+                              <span>Edit Selected</span>
+                            </DropdownItem>
+                          </li>
+                          <li>
+                            <DropdownItem
+                              tag="a"
+                              href="#remove"
+                              onClick={(ev) => {
+                                ev.preventDefault();
+                                selectorDeleteProduct();
+                              }}
+                            >
+                              <Icon name="trash"></Icon>
+                              <span>Remove Selected</span>
+                            </DropdownItem>
+                          </li>
+                          <li>
+                            <DropdownItem tag="a" href="#stock" onClick={(ev) => ev.preventDefault()}>
+                              <Icon name="bar-c"></Icon>
+                              <span>Update Stock</span>
+                            </DropdownItem>
+                          </li>
+                          <li>
+                            <DropdownItem tag="a" href="#price" onClick={(ev) => ev.preventDefault()}>
+                              <Icon name="invest"></Icon>
+                              <span>Update Price</span>
+                            </DropdownItem>
+                          </li>
+                        </ul>
+                      </DropdownMenu> */}
                     </UncontrolledDropdown>
                   </li>
                 </ul>
@@ -383,7 +452,9 @@ const ProductList = () => {
                           <span className="title">{item.name}</span>
                         </span>
                       </DataTableRow>
-
+                      <DataTableRow>
+                        <span className="tb-sub">{item.sku}</span>
+                      </DataTableRow>
                       <DataTableRow>
                         <span className="tb-sub">$ {item.price}</span>
                       </DataTableRow>
@@ -393,7 +464,18 @@ const ProductList = () => {
                       <DataTableRow size="md">
                         <span className="tb-sub">{categoryList.join(", ")}</span>
                       </DataTableRow>
-
+                      <DataTableRow size="md">
+                        <div className="asterisk tb-asterisk">
+                          <a
+                            href="#asterisk"
+                            className={item.fav ? "active" : ""}
+                            onClick={(ev) => ev.preventDefault()}
+                          >
+                            <Icon name="star" className="asterisk-off"></Icon>
+                            <Icon name="star-fill" className="asterisk-on"></Icon>
+                          </a>
+                        </div>
+                      </DataTableRow>
                       <DataTableRow className="nk-tb-col-tools">
                         <ul className="nk-tb-actions gx-1 my-n1">
                           <li className="me-n1">
@@ -408,7 +490,7 @@ const ProductList = () => {
                               </DropdownToggle>
                               <DropdownMenu end>
                                 <ul className="link-list-opt no-bdr">
-                                  <li>
+                                  {/* <li>
                                     <DropdownItem
                                       tag="a"
                                       href="#edit"
@@ -419,10 +501,10 @@ const ProductList = () => {
                                       }}
                                     >
                                       <Icon name="edit"></Icon>
-                                      <span>Edit Product</span>
+                                      <span>Edit Model</span>
                                     </DropdownItem>
-                                  </li>
-                                  {/* <li>
+                                  </li> */}
+                                  <li>
                                     <DropdownItem
                                       tag="a"
                                       href="#view"
@@ -433,9 +515,9 @@ const ProductList = () => {
                                       }}
                                     >
                                       <Icon name="eye"></Icon>
-                                      <span>View Product</span>
+                                      <span>View Model</span>
                                     </DropdownItem>
-                                  </li> */}
+                                  </li>
                                   <li>
                                     <DropdownItem
                                       tag="a"
@@ -446,7 +528,7 @@ const ProductList = () => {
                                       }}
                                     >
                                       <Icon name="trash"></Icon>
-                                      <span>Remove Product</span>
+                                      <span>Remove Model</span>
                                     </DropdownItem>
                                   </li>
                                 </ul>
@@ -470,7 +552,7 @@ const ProductList = () => {
               />
             ) : (
               <div className="text-center">
-                <span className="text-silent">No products found</span>
+                <span className="text-silent">No Model found</span>
               </div>
             )}
           </PreviewAltCard>
@@ -489,26 +571,26 @@ const ProductList = () => {
               ></Icon>
             </a>
             <div className="p-2">
-              <h5 className="title">Update Category</h5>
+              <h5 className="title">Update Model</h5>
               <div className="mt-4">
                 <form onSubmit={handleSubmit(onEditSubmit)}>
                   <Row className="g-3">
                     <Col size="12">
                       <div className="form-group">
                         <label className="form-label" htmlFor="product-title">
-                          Category Name
+                          Model Name
                         </label>
                         <div className="form-control-wrap">
                           <input
                             type="text"
                             className="form-control"
-                            {...register("Name", {
+                            {...register("name", {
                               required: "This field is required",
                             })}
-                            value={formData.Name}
-                            onChange={(e) => setFormData({ ...formData, Name: e.target.value })}
+                            value={formData.name}
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                           />
-                          {errors.Name && <span className="invalid">{errors.Name.message}</span>}
+                          {errors.name && <span className="invalid">{errors.name.message}</span>}
                         </div>
                       </div>
                     </Col>
@@ -516,10 +598,10 @@ const ProductList = () => {
                     <Col size="6">
                       <div className="form-group">
                         <label className="form-label" htmlFor="category">
-                          Category Image
+                          Model Image
                         </label>
                         <div className="form-control-wrap">
-                          <img src={formData.Image} alt=""></img>
+                          <img src={formData.img} alt=""></img>
                         </div>
                       </div>
                     </Col>
@@ -535,7 +617,7 @@ const ProductList = () => {
                               {files.length === 0 && <p>Drag 'n' drop some files here, or click to select files</p>}
                               {files.map((file) => (
                                 <div
-                                  key={file.Name}
+                                  key={file.name}
                                   className="dz-preview dz-processing dz-image-preview dz-error dz-complete"
                                 >
                                   <div className="dz-image">
@@ -552,7 +634,7 @@ const ProductList = () => {
                     <Col size="12">
                       <Button color="primary" type="submit">
                         <Icon className="plus"></Icon>
-                        <span>Add Category</span>
+                        <span>Add Model</span>
                       </Button>
                     </Col>
                   </Row>
@@ -562,6 +644,53 @@ const ProductList = () => {
           </ModalBody>
         </Modal>
 
+        {/* <Modal isOpen={view.details} toggle={() => onFormCancel()} className="modal-dialog-centered" size="lg">
+          <ModalBody>
+            <a href="#cancel" className="close">
+              {" "}
+              <Icon
+                name="cross-sm"
+                onClick={(ev) => {
+                  ev.preventDefault();
+                  onFormCancel();
+                }}
+              ></Icon>
+            </a>
+            <div className="nk-modal-head">
+              <h4 className="nk-modal-title title">
+                Model <small className="text-primary">#{formData.sku}</small>
+              </h4>
+              <img src={formData.img} alt="" />
+            </div>
+            <div className="nk-tnx-details mt-sm-3">
+              <Row className="gy-3">
+                <Col lg={6}>
+                  <span className="sub-text">Model Name</span>
+                  <span className="caption-text">{formData.name}</span>
+                </Col>
+                <Col lg={6}>
+                  <span className="sub-text">Model Price</span>
+                  <span className="caption-text">$ {formData.price}</span>
+                </Col>
+                <Col lg={6}>
+                  <span className="sub-text">Model</span>
+                  <span className="caption-text">
+                    {formData.category.map((item, index) => (
+                      <Badge key={index} className="me-1" color="secondary">
+                        {item.value}
+                      </Badge>
+                    ))}
+                  </span>
+                </Col>
+                <Col lg={6}>
+                  <span className="sub-text">Stock</span>
+                  <span className="caption-text"> {formData.stock}</span>
+                </Col>
+              </Row>
+            </div>
+          </ModalBody>
+        </Modal> */}
+
         <SimpleBar
           className={`nk-add-product toggle-slide toggle-slide-right toggle-screen-any ${
             view.add ? "content-active" : ""
@@ -569,9 +698,9 @@ const ProductList = () => {
         >
           <BlockHead>
             <BlockHeadContent>
-              <BlockTitle tag="h5">Add Category</BlockTitle>
+              <BlockTitle tag="h5">Add Model</BlockTitle>
               <BlockDes>
-                <p>Add information or update Category.</p>
+                <p>Add information or update Model.</p>
               </BlockDes>
             </BlockHeadContent>
           </BlockHead>
@@ -581,19 +710,19 @@ const ProductList = () => {
                 <Col size="12">
                   <div className="form-group">
                     <label className="form-label" htmlFor="product-title">
-                      Category Name
+                      Model Name
                     </label>
                     <div className="form-control-wrap">
                       <input
                         type="text"
                         className="form-control"
-                        {...register("Name", {
+                        {...register("name", {
                           required: "This field is required",
                         })}
-                        value={formData.Name}
-                        onChange={(e) => setFormData({ ...formData, Name: e.target.value })}
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       />
-                      {errors.Name && <span className="invalid">{errors.Name.message}</span>}
+                      {errors.name && <span className="invalid">{errors.name.message}</span>}
                     </div>
                   </div>
                 </Col>
@@ -601,10 +730,10 @@ const ProductList = () => {
                 <Col size="6">
                   <div className="form-group">
                     <label className="form-label" htmlFor="category">
-                      Category Image
+                      Model Image
                     </label>
                     <div className="form-control-wrap">
-                      <img src={formData.Image} alt=""></img>
+                      <img src={formData.img} alt=""></img>
                     </div>
                   </div>
                 </Col>
@@ -617,7 +746,7 @@ const ProductList = () => {
                           {files.length === 0 && <p>Drag 'n' drop some files here, or click to select files</p>}
                           {files.map((file) => (
                             <div
-                              key={file.Name}
+                              key={file.name}
                               className="dz-preview dz-processing dz-image-preview dz-error dz-complete"
                             >
                               <div className="dz-image">
@@ -634,7 +763,7 @@ const ProductList = () => {
                 <Col size="12">
                   <Button color="primary" type="submit">
                     <Icon className="plus"></Icon>
-                    <span>Add Category</span>
+                    <span>Add Model</span>
                   </Button>
                 </Col>
               </Row>
@@ -648,4 +777,4 @@ const ProductList = () => {
   );
 };
 
-export default ProductList;
+export default Model;

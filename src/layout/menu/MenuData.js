@@ -24,10 +24,41 @@ const menu = [
         text: "Products",
         link: "/ecommerce/products",
       },
+
       {
         icon: "package-fill",
         text: "Category",
         link: "/ecommerce/category",
+      },
+      {
+        icon: "package-fill",
+        text: "Sub Category",
+        link: "/ecommerce/subcategory",
+      },
+      {
+        icon: "package-fill",
+        text: "Model",
+        link: "/ecommerce/model",
+      },
+      {
+        icon: "package-fill",
+        text: "Color Product",
+        link: "/ecommerce/colorproduct",
+      },
+      {
+        icon: "package-fill",
+        text: "Size Product",
+        link: "/ecommerce/sizeproduct",
+      },
+      {
+        icon: "package-fill",
+        text: "Related Product",
+        link: "/ecommerce/relatedproduct",
+      },
+      {
+        icon: "package-fill",
+        text: "Tag Product",
+        link: "/ecommerce/tagproduct",
       },
       {
         icon: "users-fill",

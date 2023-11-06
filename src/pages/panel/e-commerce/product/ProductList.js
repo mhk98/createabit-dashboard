@@ -1,31 +1,30 @@
-import React, { useState, useEffect } from "react";
-import Head from "../../../../layout/head/Head";
-import Content from "../../../../layout/content/Content";
+import React, { useEffect, useState } from "react";
+import Dropzone from "react-dropzone";
+import { useForm } from "react-hook-form";
+import { Badge, DropdownItem, DropdownMenu, DropdownToggle, Modal, ModalBody, UncontrolledDropdown } from "reactstrap";
+import SimpleBar from "simplebar-react";
 import {
   Block,
-  BlockHead,
-  BlockTitle,
   BlockBetween,
-  BlockHeadContent,
   BlockDes,
-  Icon,
-  Row,
-  Col,
+  BlockHead,
+  BlockHeadContent,
+  BlockTitle,
   Button,
+  Col,
   DataTableHead,
-  DataTableRow,
   DataTableItem,
+  DataTableRow,
+  Icon,
   PaginationComponent,
-  RSelect,
   PreviewAltCard,
+  RSelect,
+  Row,
 } from "../../../../components/Component";
-import { DropdownItem, UncontrolledDropdown, DropdownMenu, DropdownToggle, Badge } from "reactstrap";
-import { productData, categoryOptions } from "./ProductData";
-import SimpleBar from "simplebar-react";
-import { useForm } from "react-hook-form";
 import ProductH from "../../../../images/product/h.png";
-import Dropzone from "react-dropzone";
-import { Modal, ModalBody } from "reactstrap";
+import Content from "../../../../layout/content/Content";
+import Head from "../../../../layout/head/Head";
+import { categoryOptions, productData } from "./ProductData";
 
 const ProductList = () => {
   const [data, setData] = useState(productData);
@@ -59,6 +58,7 @@ const ProductList = () => {
     category: [],
     fav: false,
     check: false,
+    description: "",
   });
   const [editId, setEditedId] = useState();
   const [view, setView] = useState({
@@ -595,6 +595,28 @@ const ProductList = () => {
                         </div>
                       </div>
                     </Col>
+
+                    <Col size="12">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="product-description">
+                          Product Description
+                        </label>
+                        <div className="form-control-wrap">
+                          <textarea
+                            rows="4" // You can adjust the number of rows as needed
+                            className="form-control"
+                            {...register("description", {
+                              required: "This field is required",
+                            })}
+                            value={formData.description}
+                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                          ></textarea>
+
+                          {/* <textarea class="form-control" aria-label="With textarea"></textarea> */}
+                          {errors.description && <span className="invalid">{errors.description.message}</span>}
+                        </div>
+                      </div>
+                    </Col>
                     <Col md="6">
                       <div className="form-group">
                         <label className="form-label" htmlFor="regular-price">
@@ -680,6 +702,351 @@ const ProductList = () => {
                         </div>
                       </div>
                     </Col>
+
+                    <Col size="12">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="category">
+                          Sub Category
+                        </label>
+                        <div className="form-control-wrap">
+                          <RSelect
+                            name="category"
+                            isMulti
+                            options={categoryOptions}
+                            onChange={(value) => setFormData({ ...formData, category: value })}
+                            value={formData.category}
+                            //ref={register({ required: "This is required" })}
+                          />
+                          {errors.category && <span className="invalid">{errors.category.message}</span>}
+                        </div>
+                      </div>
+                    </Col>
+
+                    <Col size="12">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="category">
+                          Model
+                        </label>
+                        <div className="form-control-wrap">
+                          <RSelect
+                            isMulti
+                            options={categoryOptions.map((option) => ({
+                              ...option,
+                              label: (
+                                <div>
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedCategories.some(
+                                      (selectedOption) => selectedOption.value === option.value
+                                    )}
+                                    onChange={() => {
+                                      if (
+                                        selectedCategories.some(
+                                          (selectedOption) => selectedOption.value === option.value
+                                        )
+                                      ) {
+                                        setSelectedCategories(
+                                          selectedCategories.filter(
+                                            (selectedOption) => selectedOption.value !== option.value
+                                          )
+                                        );
+                                      } else {
+                                        setSelectedCategories([...selectedCategories, option]);
+                                      }
+                                    }}
+                                  />
+                                  {option.label}
+                                </div>
+                              ),
+                            }))}
+                            value={selectedCategories}
+                            onChange={handleCategoryChange}
+                            styles={customStyles}
+                          />
+                          {errors.category && <span className="invalid">{errors.category.message}</span>}
+                        </div>
+                      </div>
+                    </Col>
+                    <Col size="12">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="category">
+                          Color Product
+                        </label>
+                        <div className="form-control-wrap">
+                          <RSelect
+                            isMulti
+                            options={categoryOptions.map((option) => ({
+                              ...option,
+                              label: (
+                                <div>
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedCategories.some(
+                                      (selectedOption) => selectedOption.value === option.value
+                                    )}
+                                    onChange={() => {
+                                      if (
+                                        selectedCategories.some(
+                                          (selectedOption) => selectedOption.value === option.value
+                                        )
+                                      ) {
+                                        setSelectedCategories(
+                                          selectedCategories.filter(
+                                            (selectedOption) => selectedOption.value !== option.value
+                                          )
+                                        );
+                                      } else {
+                                        setSelectedCategories([...selectedCategories, option]);
+                                      }
+                                    }}
+                                  />
+                                  {option.label}
+                                </div>
+                              ),
+                            }))}
+                            value={selectedCategories}
+                            onChange={handleCategoryChange}
+                            styles={customStyles}
+                          />
+                          {errors.category && <span className="invalid">{errors.category.message}</span>}
+                        </div>
+                      </div>
+                    </Col>
+
+                    <Col size="12">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="category">
+                          Size Product
+                        </label>
+                        <div className="form-control-wrap">
+                          <RSelect
+                            isMulti
+                            options={categoryOptions.map((option) => ({
+                              ...option,
+                              label: (
+                                <div>
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedCategories.some(
+                                      (selectedOption) => selectedOption.value === option.value
+                                    )}
+                                    onChange={() => {
+                                      if (
+                                        selectedCategories.some(
+                                          (selectedOption) => selectedOption.value === option.value
+                                        )
+                                      ) {
+                                        setSelectedCategories(
+                                          selectedCategories.filter(
+                                            (selectedOption) => selectedOption.value !== option.value
+                                          )
+                                        );
+                                      } else {
+                                        setSelectedCategories([...selectedCategories, option]);
+                                      }
+                                    }}
+                                  />
+                                  {option.label}
+                                </div>
+                              ),
+                            }))}
+                            value={selectedCategories}
+                            onChange={handleCategoryChange}
+                            styles={customStyles}
+                          />
+                          {errors.category && <span className="invalid">{errors.category.message}</span>}
+                        </div>
+                      </div>
+                    </Col>
+
+                    <Col size="12">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="category">
+                          Taxable or Not
+                        </label>
+                        <div className="form-control-wrap">
+                          <RSelect
+                            isMulti
+                            options={categoryOptions}
+                            value={formData.category}
+                            onChange={(value) => setFormData({ ...formData, category: value })}
+                            //ref={register({ required: "This is required" })}
+                          />
+                          {errors.category && <span className="invalid">{errors.category.message}</span>}
+                        </div>
+                      </div>
+                    </Col>
+                    <Col size="12">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="category">
+                          Related Products
+                        </label>
+                        <div className="form-control-wrap">
+                          <RSelect
+                            isMulti
+                            options={categoryOptions.map((option) => ({
+                              ...option,
+                              label: (
+                                <div>
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedCategories.some(
+                                      (selectedOption) => selectedOption.value === option.value
+                                    )}
+                                    onChange={() => {
+                                      if (
+                                        selectedCategories.some(
+                                          (selectedOption) => selectedOption.value === option.value
+                                        )
+                                      ) {
+                                        setSelectedCategories(
+                                          selectedCategories.filter(
+                                            (selectedOption) => selectedOption.value !== option.value
+                                          )
+                                        );
+                                      } else {
+                                        setSelectedCategories([...selectedCategories, option]);
+                                      }
+                                    }}
+                                  />
+                                  {option.label}
+                                </div>
+                              ),
+                            }))}
+                            value={selectedCategories}
+                            onChange={handleCategoryChange}
+                            styles={customStyles}
+                          />
+                          {errors.category && <span className="invalid">{errors.category.message}</span>}
+                        </div>
+                      </div>
+                    </Col>
+
+                    <Col size="12">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="category">
+                          Product Type
+                        </label>
+                        <div className="form-control-wrap">
+                          <RSelect
+                            isMulti
+                            options={categoryOptions}
+                            value={formData.category}
+                            onChange={(value) => setFormData({ ...formData, category: value })}
+                            //ref={register({ required: "This is required" })}
+                          />
+                          {errors.category && <span className="invalid">{errors.category.message}</span>}
+                        </div>
+                      </div>
+                    </Col>
+
+                    <Col size="12">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="category">
+                          Tag Product
+                        </label>
+                        <div className="form-control-wrap">
+                          <RSelect
+                            isMulti
+                            options={categoryOptions.map((option) => ({
+                              ...option,
+                              label: (
+                                <div>
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedCategories.some(
+                                      (selectedOption) => selectedOption.value === option.value
+                                    )}
+                                    onChange={() => {
+                                      if (
+                                        selectedCategories.some(
+                                          (selectedOption) => selectedOption.value === option.value
+                                        )
+                                      ) {
+                                        setSelectedCategories(
+                                          selectedCategories.filter(
+                                            (selectedOption) => selectedOption.value !== option.value
+                                          )
+                                        );
+                                      } else {
+                                        setSelectedCategories([...selectedCategories, option]);
+                                      }
+                                    }}
+                                  />
+                                  {option.label}
+                                </div>
+                              ),
+                            }))}
+                            value={selectedCategories}
+                            onChange={handleCategoryChange}
+                            styles={customStyles}
+                          />
+                          {errors.category && <span className="invalid">{errors.category.message}</span>}
+                        </div>
+                      </div>
+                    </Col>
+
+                    <Col size="12">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="product-title">
+                          Rate
+                        </label>
+                        <div className="form-control-wrap">
+                          <input
+                            placeholder="Product Price"
+                            type="text"
+                            className="form-control"
+                            {...register("name", {
+                              required: "This field is required",
+                            })}
+                            value={formData.name}
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                          />
+                          {errors.name && <span className="invalid">{errors.name.message}</span>}
+                        </div>
+                      </div>
+                    </Col>
+                    <Col size="12">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="product-title">
+                          Quantity Price
+                        </label>
+                        <div className="form-control-wrap">
+                          <input
+                            placeholder="Quantity Price"
+                            type="text"
+                            className="form-control"
+                            {...register("name", {
+                              required: "This field is required",
+                            })}
+                            value={formData.name}
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                          />
+                          {errors.name && <span className="invalid">{errors.name.message}</span>}
+                        </div>
+                      </div>
+                    </Col>
+                    <Col size="12">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="product-title">
+                          Discount %
+                        </label>
+                        <div className="form-control-wrap">
+                          <input
+                            placeholder="Product Discount"
+                            type="text"
+                            className="form-control"
+                            {...register("name", {
+                              required: "This field is required",
+                            })}
+                            value={formData.name}
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                          />
+                          {errors.name && <span className="invalid">{errors.name.message}</span>}
+                        </div>
+                      </div>
+                    </Col>
+
                     <Col size="6">
                       <div className="form-group">
                         <label className="form-label" htmlFor="category">
@@ -808,6 +1175,26 @@ const ProductList = () => {
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       />
                       {errors.name && <span className="invalid">{errors.name.message}</span>}
+                    </div>
+                  </div>
+                </Col>
+
+                <Col size="12">
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="product-description">
+                      Product Description
+                    </label>
+                    <div className="form-control-wrap">
+                      <textarea
+                        rows="4" // You can adjust the number of rows as needed
+                        className="form-control"
+                        {...register("description", {
+                          required: "This field is required",
+                        })}
+                        value={formData.description}
+                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      ></textarea>
+                      {errors.description && <span className="invalid">{errors.description.message}</span>}
                     </div>
                   </div>
                 </Col>
@@ -1069,7 +1456,7 @@ const ProductList = () => {
                 <Col size="12">
                   <div className="form-group">
                     <label className="form-label" htmlFor="category">
-                      Related Product
+                      Related Products
                     </label>
                     <div className="form-control-wrap">
                       <RSelect
@@ -1171,6 +1558,102 @@ const ProductList = () => {
                     </div>
                   </div>
                 </Col>
+
+                <Col size="12">
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="product-title">
+                      Rate
+                    </label>
+                    <div className="form-control-wrap">
+                      <input
+                        placeholder="Product Price"
+                        type="text"
+                        className="form-control"
+                        {...register("name", {
+                          required: "This field is required",
+                        })}
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      />
+                      {errors.name && <span className="invalid">{errors.name.message}</span>}
+                    </div>
+                  </div>
+                </Col>
+                <Col size="12">
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="product-title">
+                      Quantity Price
+                    </label>
+                    <div className="form-control-wrap">
+                      <input
+                        placeholder="Quantity Price"
+                        type="text"
+                        className="form-control"
+                        {...register("name", {
+                          required: "This field is required",
+                        })}
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      />
+                      {errors.name && <span className="invalid">{errors.name.message}</span>}
+                    </div>
+                  </div>
+                </Col>
+                <Col size="12">
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="product-title">
+                      Discount %
+                    </label>
+                    <div className="form-control-wrap">
+                      <input
+                        placeholder="Product Discount"
+                        type="text"
+                        className="form-control"
+                        {...register("name", {
+                          required: "This field is required",
+                        })}
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      />
+                      {errors.name && <span className="invalid">{errors.name.message}</span>}
+                    </div>
+                  </div>
+                </Col>
+                <Col size="6">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="category">
+                          Product Image
+                        </label>
+                        <div className="form-control-wrap">
+                          <img src={formData.img} alt=""></img>
+                        </div>
+                      </div>
+                    </Col>
+                    <Col size="6">
+                      <Dropzone onDrop={(acceptedFiles) => handleDropChange(acceptedFiles)}>
+                        {({ getRootProps, getInputProps }) => (
+                          <section>
+                            <div
+                              {...getRootProps()}
+                              className="dropzone upload-zone small bg-lighter my-2 dz-clickable"
+                            >
+                              <input {...getInputProps()} />
+                              {files.length === 0 && <p>Drag 'n' drop some files here, or click to select files</p>}
+                              {files.map((file) => (
+                                <div
+                                  key={file.name}
+                                  className="dz-preview dz-processing dz-image-preview dz-error dz-complete"
+                                >
+                                  <div className="dz-image">
+                                    <img src={file.preview} alt="preview" />
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </section>
+                        )}
+                      </Dropzone>
+                    </Col>
 
                 <Col size="12">
                   <Button color="primary" type="submit">
