@@ -1,5 +1,5 @@
+import axios from "axios";
 import React, { useEffect, useState } from "react";
-import Dropzone from "react-dropzone";
 import { useForm } from "react-hook-form";
 import { DropdownItem, DropdownMenu, DropdownToggle, Modal, ModalBody, UncontrolledDropdown } from "reactstrap";
 import SimpleBar from "simplebar-react";
@@ -20,16 +20,17 @@ import {
   PreviewAltCard,
   Row,
 } from "../../../../components/Component";
-import ProductH from "../../../../images/product/h.png";
 import Content from "../../../../layout/content/Content";
 import Head from "../../../../layout/head/Head";
 import { productData } from "../product/ProductData";
 
 const ProductList = () => {
   const [data, setData] = useState(productData);
+  const [file, setFile] = useState();
+  const [image, setImage] = useState();
   const [sm, updateSm] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState([]);
-
+  const [updateId, setUpdateId] = useState("");
   const handleCategoryChange = (selectedOptions) => {
     setSelectedCategories(selectedOptions);
   };
@@ -49,7 +50,7 @@ const ProductList = () => {
 
   const [formData, setFormData] = useState({
     Name: "",
-    Image: null,
+    Image: "",
   });
   const [editId, setEditedId] = useState();
   const [view, setView] = useState({
@@ -61,6 +62,13 @@ const ProductList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemPerPage] = useState(7);
   const [files, setFiles] = useState([]);
+
+  function handleChange(e) {
+    setFile(URL.createObjectURL(e.target.files[0]));
+    if (e.target.files && e.target.files.length > 0) {
+      setImage(e.target.files[0]);
+    }
+  }
 
   // Changing state value when searching name
   useEffect(() => {
@@ -88,61 +96,41 @@ const ProductList = () => {
     reset({});
   };
 
-  const onFormSubmit = (form) => {
-    const { title, price, salePrice, sku, stock } = form;
-    let submittedData = {
-      id: data.length + 1,
-      Name: title,
-      Image: files.length > 0 ? files[0].preview : ProductH,
-    };
+  const onFormSubmit = async (form) => {
+    const formData = new FormData();
+    formData.append("Name", form.Name);
+    formData.append("Stock", form.Stock);
+    formData.append("Image", image);
 
     console.log("formData", formData);
-    setData([submittedData, ...data]);
+    try {
+      const data = await axios.post("http://localhost:5000/api/v1/category/create-category", formData);
+
+      console.log("responseData", data);
+    } catch (error) {
+      console.log("Error", error);
+    }
 
     setFiles([]);
     resetForm();
   };
 
-  const onEditSubmit = () => {
-    let submittedData;
-    let newItems = data;
-    let index = newItems.findIndex((item) => item.id === editId);
+  const onEditSubmit = async (data, updateId) => {
+    const formData = new FormData();
+    formData.append("Name", data.Name);
+    formData.append("Stock", data.Stock);
+    formData.append("Image", image);
 
-    newItems.forEach((item) => {
-      if (item.id === editId) {
-        submittedData = {
-          id: editId,
-          name: formData.name,
-          img: files.length > 0 ? files[0].preview : item.img,
-          sku: formData.sku,
-          price: formData.price,
-          salePrice: formData.salePrice,
-          stock: formData.stock,
-          category: formData.category,
-          fav: false,
-          check: false,
-        };
-      }
-    });
-    newItems[index] = submittedData;
-    //setData(newItems);
+    console.log("formData", formData);
+    try {
+      const data = await axios.put(`http://localhost:5000/api/v1/category/${updateId}`, formData);
+
+      console.log("responseData", data);
+    } catch (error) {
+      console.log("Error", error);
+    }
+
     resetForm();
-    setView({ edit: false, add: false });
-  };
-
-  // function that loads the want to editted data
-  const onEditClick = (id) => {
-    data.forEach((item) => {
-      if (item.id === id) {
-        setFormData({
-          Name: item.Name,
-          Image: item.Image,
-        });
-      }
-    });
-    setEditedId(id);
-    setFiles([]);
-    setView({ add: false, edit: true });
   };
 
   useEffect(() => {
@@ -188,22 +176,29 @@ const ProductList = () => {
     });
   };
 
-  // handles ondrop function of dropzone
-  const handleDropChange = (acceptedFiles) => {
-    setFiles(
-      acceptedFiles.map((file) =>
-        Object.assign(file, {
-          preview: URL.createObjectURL(file),
-        })
-      )
-    );
-  };
-
   // Get current list, pagination
   const indexOfLastItem = currentPage * itemPerPage;
   const indexOfFirstItem = indexOfLastItem - itemPerPage;
+
+  useEffect(() => {
+    // Define the URL of the API or server you want to fetch data from
+    const apiUrl = "http://localhost:5000/api/v1/category"; // Replace with your API URL
+
+    // Use Axios to make a GET request
+    axios
+      .get(apiUrl)
+      .then((response) => {
+        // setData(response.data); // Set the fetched data in your state
+
+        setData(response.data.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+      });
+  }, []);
   const currentItems = data.slice(indexOfFirstItem, indexOfLastItem);
 
+  console.log("currentItems", currentItems);
   // Change Page
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
@@ -326,17 +321,21 @@ const ProductList = () => {
                 </div>
               </DataTableRow>
               <DataTableRow size="sm">
-                <span>Name</span>
+                <span>Category Name</span>
+              </DataTableRow>
+
+              <DataTableRow size="sm">
+                <span>Stock</span>
               </DataTableRow>
 
               <DataTableRow>
-                <span>Price</span>
+                <span>Create Date</span>
               </DataTableRow>
               <DataTableRow>
-                <span>Stock</span>
+                <span>Modified Date</span>
               </DataTableRow>
               <DataTableRow size="md">
-                <span>Category</span>
+                <span>Created By</span>
               </DataTableRow>
 
               <DataTableRow className="nk-tb-col-tools">
@@ -357,72 +356,75 @@ const ProductList = () => {
               </DataTableRow>
             </DataTableHead>
             {currentItems.length > 0
-              ? currentItems.map((item) => {
-                  const categoryList = [];
-                  item.category.forEach((currentElement) => {
-                    categoryList.push(currentElement.label);
-                  });
-                  return (
-                    <DataTableItem key={item.id}>
-                      <DataTableRow className="nk-tb-col-check">
-                        <div className="custom-control custom-control-sm custom-checkbox notext">
-                          <input
-                            type="checkbox"
-                            className="custom-control-input"
-                            defaultChecked={item.check}
-                            id={item.id + "uid1"}
-                            key={Math.random()}
-                            onChange={(e) => onSelectChange(e, item.id)}
-                          />
-                          <label className="custom-control-label" htmlFor={item.id + "uid1"}></label>
-                        </div>
-                      </DataTableRow>
-                      <DataTableRow size="sm">
-                        <span className="tb-product">
-                          <img src={item.img ? item.img : ProductH} alt="product" className="thumb" />
-                          <span className="title">{item.name}</span>
-                        </span>
-                      </DataTableRow>
+              ? currentItems.map((item) => (
+                  <DataTableItem key={item.Category_Id}>
+                    <DataTableRow className="nk-tb-col-check">
+                      <div className="custom-control custom-control-sm custom-checkbox notext">
+                        <input
+                          type="checkbox"
+                          className="custom-control-input"
+                          defaultChecked={item.Check}
+                          id={item.id + "uid1"}
+                          key={Math.random()}
+                          onChange={(e) => onSelectChange(e, item.Category_Id)}
+                        />
+                        <label className="custom-control-label" htmlFor={item.id + "uid1"}></label>
+                      </div>
+                    </DataTableRow>
+                    <DataTableRow size="sm">
+                      <span className="tb-product">
+                        <img src={`http://localhost:5000/${item.Image}`} alt="product" className="thumb" />
+                        <span className="title">{item.Name}</span>
+                      </span>
+                    </DataTableRow>
 
-                      <DataTableRow>
-                        <span className="tb-sub">$ {item.price}</span>
-                      </DataTableRow>
-                      <DataTableRow>
-                        <span className="tb-sub">{item.stock}</span>
-                      </DataTableRow>
-                      <DataTableRow size="md">
-                        <span className="tb-sub">{categoryList.join(", ")}</span>
-                      </DataTableRow>
+                    <DataTableRow>
+                      <span className="tb-sub">{item.Stock}</span>
+                    </DataTableRow>
 
-                      <DataTableRow className="nk-tb-col-tools">
-                        <ul className="nk-tb-actions gx-1 my-n1">
-                          <li className="me-n1">
-                            <UncontrolledDropdown>
-                              <DropdownToggle
-                                tag="a"
-                                href="#more"
-                                onClick={(ev) => ev.preventDefault()}
-                                className="dropdown-toggle btn btn-icon btn-trigger"
-                              >
-                                <Icon name="more-h"></Icon>
-                              </DropdownToggle>
-                              <DropdownMenu end>
-                                <ul className="link-list-opt no-bdr">
-                                  <li>
-                                    <DropdownItem
-                                      tag="a"
-                                      href="#edit"
-                                      onClick={(ev) => {
-                                        ev.preventDefault();
-                                        onEditClick(item.id);
-                                        toggle("edit");
-                                      }}
-                                    >
-                                      <Icon name="edit"></Icon>
-                                      <span>Edit Product</span>
-                                    </DropdownItem>
-                                  </li>
-                                  {/* <li>
+                    <DataTableRow>
+                      <span className="tb-sub">$ {item.createdAt}</span>
+                    </DataTableRow>
+                    <DataTableRow>
+                      <span className="tb-sub">{item.stock}</span>
+                    </DataTableRow>
+
+                    <DataTableRow>
+                      <span className="tb-sub">Admin</span>
+                    </DataTableRow>
+                    {/* <DataTableRow size="md">
+                      <span className="tb-sub">{categoryList.join(", ")}</span>
+                    </DataTableRow> */}
+
+                    <DataTableRow className="nk-tb-col-tools">
+                      <ul className="nk-tb-actions gx-1 my-n1">
+                        <li className="me-n1">
+                          <UncontrolledDropdown>
+                            <DropdownToggle
+                              tag="a"
+                              href="#more"
+                              onClick={(ev) => ev.preventDefault()}
+                              className="dropdown-toggle btn btn-icon btn-trigger"
+                            >
+                              <Icon name="more-h"></Icon>
+                            </DropdownToggle>
+                            <DropdownMenu end>
+                              <ul className="link-list-opt no-bdr">
+                                <li>
+                                  <DropdownItem
+                                    tag="a"
+                                    href="#edit"
+                                    onClick={(ev) => {
+                                      ev.preventDefault();
+                                      setUpdateId(item.Category_Id);
+                                      toggle("edit");
+                                    }}
+                                  >
+                                    <Icon name="edit"></Icon>
+                                    <span>Edit Product</span>
+                                  </DropdownItem>
+                                </li>
+                                {/* <li>
                                     <DropdownItem
                                       tag="a"
                                       href="#view"
@@ -436,28 +438,27 @@ const ProductList = () => {
                                       <span>View Product</span>
                                     </DropdownItem>
                                   </li> */}
-                                  <li>
-                                    <DropdownItem
-                                      tag="a"
-                                      href="#remove"
-                                      onClick={(ev) => {
-                                        ev.preventDefault();
-                                        deleteProduct(item.id);
-                                      }}
-                                    >
-                                      <Icon name="trash"></Icon>
-                                      <span>Remove Product</span>
-                                    </DropdownItem>
-                                  </li>
-                                </ul>
-                              </DropdownMenu>
-                            </UncontrolledDropdown>
-                          </li>
-                        </ul>
-                      </DataTableRow>
-                    </DataTableItem>
-                  );
-                })
+                                <li>
+                                  <DropdownItem
+                                    tag="a"
+                                    href="#remove"
+                                    onClick={(ev) => {
+                                      ev.preventDefault();
+                                      deleteProduct(item.id);
+                                    }}
+                                  >
+                                    <Icon name="trash"></Icon>
+                                    <span>Remove Product</span>
+                                  </DropdownItem>
+                                </li>
+                              </ul>
+                            </DropdownMenu>
+                          </UncontrolledDropdown>
+                        </li>
+                      </ul>
+                    </DataTableRow>
+                  </DataTableItem>
+                ))
               : null}
           </div>
           <PreviewAltCard>
@@ -501,14 +502,29 @@ const ProductList = () => {
                         <div className="form-control-wrap">
                           <input
                             type="text"
-                            className="form-control"
+                            name="Name"
                             {...register("Name", {
-                              required: "This field is required",
+                              required: "this field is required.",
                             })}
-                            value={formData.Name}
-                            onChange={(e) => setFormData({ ...formData, Name: e.target.value })}
                           />
                           {errors.Name && <span className="invalid">{errors.Name.message}</span>}
+                        </div>
+                      </div>
+                    </Col>
+                    <Col size="12">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="product-title">
+                          Stock
+                        </label>
+                        <div className="form-control-wrap">
+                          <input
+                            type=""
+                            name="Stock"
+                            {...register("Stock", {
+                              required: "this field is required.",
+                            })}
+                          />
+                          {errors.Stock && <span className="invalid">{errors.Stock.message}</span>}
                         </div>
                       </div>
                     </Col>
@@ -519,40 +535,16 @@ const ProductList = () => {
                           Category Image
                         </label>
                         <div className="form-control-wrap">
-                          <img src={formData.Image} alt=""></img>
+                          <input accept="image/*" type="file" onChange={handleChange} />
+                          <img src={file} alt="" />
                         </div>
                       </div>
-                    </Col>
-                    <Col size="6">
-                      <Dropzone onDrop={(acceptedFiles) => handleDropChange(acceptedFiles)}>
-                        {({ getRootProps, getInputProps }) => (
-                          <section>
-                            <div
-                              {...getRootProps()}
-                              className="dropzone upload-zone small bg-lighter my-2 dz-clickable"
-                            >
-                              <input {...getInputProps()} />
-                              {files.length === 0 && <p>Drag 'n' drop some files here, or click to select files</p>}
-                              {files.map((file) => (
-                                <div
-                                  key={file.Name}
-                                  className="dz-preview dz-processing dz-image-preview dz-error dz-complete"
-                                >
-                                  <div className="dz-image">
-                                    <img src={file.preview} alt="preview" />
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </section>
-                        )}
-                      </Dropzone>
                     </Col>
 
                     <Col size="12">
                       <Button color="primary" type="submit">
                         <Icon className="plus"></Icon>
-                        <span>Add Category</span>
+                        <span>Update Category</span>
                       </Button>
                     </Col>
                   </Row>
@@ -586,14 +578,29 @@ const ProductList = () => {
                     <div className="form-control-wrap">
                       <input
                         type="text"
-                        className="form-control"
+                        name="Name"
                         {...register("Name", {
-                          required: "This field is required",
+                          required: "this field is required.",
                         })}
-                        value={formData.Name}
-                        onChange={(e) => setFormData({ ...formData, Name: e.target.value })}
                       />
                       {errors.Name && <span className="invalid">{errors.Name.message}</span>}
+                    </div>
+                  </div>
+                </Col>
+                <Col size="12">
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="product-title">
+                      Stock
+                    </label>
+                    <div className="form-control-wrap">
+                      <input
+                        type="text"
+                        name="Stock"
+                        {...register("Stock", {
+                          required: "this field is required.",
+                        })}
+                      />
+                      {errors.Stock && <span className="invalid">{errors.Stock.message}</span>}
                     </div>
                   </div>
                 </Col>
@@ -604,31 +611,10 @@ const ProductList = () => {
                       Category Image
                     </label>
                     <div className="form-control-wrap">
-                      <img src={formData.Image} alt=""></img>
+                      <input accept="image/*" type="file" onChange={handleChange} />
+                      <img src={file} alt="" />
                     </div>
                   </div>
-                </Col>
-                <Col size="6">
-                  <Dropzone onDrop={(acceptedFiles) => handleDropChange(acceptedFiles)}>
-                    {({ getRootProps, getInputProps }) => (
-                      <section>
-                        <div {...getRootProps()} className="dropzone upload-zone small bg-lighter my-2 dz-clickable">
-                          <input {...getInputProps()} />
-                          {files.length === 0 && <p>Drag 'n' drop some files here, or click to select files</p>}
-                          {files.map((file) => (
-                            <div
-                              key={file.Name}
-                              className="dz-preview dz-processing dz-image-preview dz-error dz-complete"
-                            >
-                              <div className="dz-image">
-                                <img src={file.preview} alt="preview" />
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </section>
-                    )}
-                  </Dropzone>
                 </Col>
 
                 <Col size="12">
