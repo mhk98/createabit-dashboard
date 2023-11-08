@@ -1,4 +1,3 @@
-import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { DropdownItem, DropdownMenu, DropdownToggle, Modal, ModalBody, UncontrolledDropdown } from "reactstrap";
@@ -20,20 +19,31 @@ import {
   PreviewAltCard,
   Row,
 } from "../../../../components/Component";
+
+import {
+  useCreateCategoryMutation,
+  useDeleteCategoryMutation,
+  useGetAllCategoryQuery,
+  useUpdateCategoryMutation,
+} from "../../../../features/category/category";
 import Content from "../../../../layout/content/Content";
 import Head from "../../../../layout/head/Head";
-import { productData } from "../product/ProductData";
+// import { productData } from "../product/ProductData";
 
 const ProductList = () => {
-  const [data, setData] = useState(productData);
+  // const [data, setData] = useState([]);
   const [file, setFile] = useState();
   const [image, setImage] = useState();
   const [sm, updateSm] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState([]);
-  const [updateId, setUpdateId] = useState("");
+  const { data, isLoading, error } = useGetAllCategoryQuery();
+  const [createCategory] = useCreateCategoryMutation();
+
   const handleCategoryChange = (selectedOptions) => {
     setSelectedCategories(selectedOptions);
   };
+
+  const [updateId, setUpdateId] = useState("");
 
   const customStyles = {
     option: (provided) => ({
@@ -70,18 +80,6 @@ const ProductList = () => {
     }
   }
 
-  // Changing state value when searching name
-  useEffect(() => {
-    if (onSearchText !== "") {
-      const filteredObject = productData.filter((item) => {
-        return item.sku.toLowerCase().includes(onSearchText.toLowerCase());
-      });
-      setData([...filteredObject]);
-    } else {
-      setData([...productData]);
-    }
-  }, [onSearchText]);
-
   // function to close the form modal
   const onFormCancel = () => {
     setView({ edit: false, add: false, details: false });
@@ -96,6 +94,17 @@ const ProductList = () => {
     reset({});
   };
 
+  const {
+    register,
+    handleSubmit,
+    reset,
+    getValues,
+
+    formState: { errors },
+  } = useForm({
+    mode: "onTouched",
+  });
+
   const onFormSubmit = async (form) => {
     const formData = new FormData();
     formData.append("Name", form.Name);
@@ -104,9 +113,8 @@ const ProductList = () => {
 
     console.log("formData", formData);
     try {
-      const data = await axios.post("http://localhost:5000/api/v1/category/create-category", formData);
-
-      console.log("responseData", data);
+      // const data = await axios.post("http://localhost:5000/api/v1/category/create-category", formData);
+      createCategory(formData);
     } catch (error) {
       console.log("Error", error);
     }
@@ -115,22 +123,65 @@ const ProductList = () => {
     resetForm();
   };
 
-  const onEditSubmit = async (data, updateId) => {
+  const {
+    register: register1,
+    handleSubmit: handleSubmit1,
+    reset: reset1,
+
+    formState: { errors: errors1 },
+  } = useForm();
+
+  // const onEditSubmit = async (data1) => {
+  //   const formData = new FormData();
+  //   formData.append("Name", data1.Name);
+  //   formData.append("Stock", data1.Stock);
+  //   formData.append("Image", image);
+
+  //   console.log("formData", formData);
+  //   try {
+  //     const data = await axios.put(`http://localhost:5000/api/v1/category/${updateId}`, formData);
+
+  //     console.log("responseData", data);
+  //   } catch (error) {
+  //     console.log("Error", error);
+  //   }
+
+  //   resetForm();
+  // };
+
+  const [updateCategory] = useUpdateCategoryMutation(); // Use the generated update hook
+
+  // Function to update a category
+  const onEditSubmit = async (data) => {
     const formData = new FormData();
     formData.append("Name", data.Name);
     formData.append("Stock", data.Stock);
     formData.append("Image", image);
 
-    console.log("formData", formData);
+    console.log("formData", image);
     try {
-      const data = await axios.put(`http://localhost:5000/api/v1/category/${updateId}`, formData);
-
-      console.log("responseData", data);
+      // const data = await axios.post("http://localhost:5000/api/v1/category/create-category", formData);
+      updateCategory({ updateId, formData });
     } catch (error) {
       console.log("Error", error);
     }
 
+    setFiles([]);
     resetForm();
+  };
+
+  // const deleteCategory = async (id) => {
+  //   const res = await axios.delete(`http://localhost:5000/api/v1/category/${id}`);
+  //   if (res.data.status === "Success") {
+  //     toast.success(res.data.message);
+  //   }
+  // };
+
+  const [deleteCategoryMutation] = useDeleteCategoryMutation();
+
+  // Function to delete a category
+  const deleteCategory = (id) => {
+    deleteCategoryMutation(id);
   };
 
   useEffect(() => {
@@ -138,33 +189,26 @@ const ProductList = () => {
   }, [formData]);
 
   // selects all the products
-  const selectorCheck = (e) => {
-    let newData;
-    newData = data.map((item) => {
-      item.check = e.currentTarget.checked;
-      return item;
-    });
-    setData([...newData]);
-  };
+  // const selectorCheck = (e) => {
+  //   let newData;
+  //   newData = data.map((item) => {
+  //     item.check = e.currentTarget.checked;
+  //     return item;
+  //   });
+  //   setData([...newData]);
+  // };
 
   // selects one product
-  const onSelectChange = (e, id) => {
-    let newData = data;
-    let index = newData.findIndex((item) => item.id === id);
-    newData[index].check = e.currentTarget.checked;
-    setData([...newData]);
-  };
+  // const onSelectChange = (e, id) => {
+  //   let newData = data;
+  //   let index = newData.findIndex((item) => item.id === id);
+  //   newData[index].check = e.currentTarget.checked;
+  //   setData([...newData]);
+  // };
 
   // onChange function for searching name
   const onFilterChange = (e) => {
     setSearchText(e.target.value);
-  };
-
-  // function to delete a product
-  const deleteProduct = (id) => {
-    let defaultData = data;
-    defaultData = defaultData.filter((item) => item.id !== id);
-    setData([...defaultData]);
   };
 
   // toggle function to view product details
@@ -176,38 +220,16 @@ const ProductList = () => {
     });
   };
 
+  const category = data?.data || "";
   // Get current list, pagination
   const indexOfLastItem = currentPage * itemPerPage;
   const indexOfFirstItem = indexOfLastItem - itemPerPage;
 
-  useEffect(() => {
-    // Define the URL of the API or server you want to fetch data from
-    const apiUrl = "http://localhost:5000/api/v1/category"; // Replace with your API URL
+  const currentItems = category.slice(indexOfFirstItem, indexOfLastItem);
 
-    // Use Axios to make a GET request
-    axios
-      .get(apiUrl)
-      .then((response) => {
-        // setData(response.data); // Set the fetched data in your state
-
-        setData(response.data.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-      });
-  }, []);
-  const currentItems = data.slice(indexOfFirstItem, indexOfLastItem);
-
-  console.log("currentItems", currentItems);
+  // console.log("currentItems", currentItems);
   // Change Page
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm();
 
   return (
     <React.Fragment>
@@ -306,10 +328,12 @@ const ProductList = () => {
 
         {/* Header Part End */}
 
+        {error ? <>Oh, no there was an error</> : isLoading ? <>Loading...</> : currentItems ? <></> : null}
+
         <Block>
           <div className="nk-tb-list is-separate is-medium mb-3">
             <DataTableHead className="nk-tb-item">
-              <DataTableRow className="nk-tb-col-check">
+              {/* <DataTableRow className="nk-tb-col-check">
                 <div className="custom-control custom-control-sm custom-checkbox notext">
                   <input
                     type="checkbox"
@@ -319,7 +343,7 @@ const ProductList = () => {
                   />
                   <label className="custom-control-label" htmlFor="uid_1"></label>
                 </div>
-              </DataTableRow>
+              </DataTableRow> */}
               <DataTableRow size="sm">
                 <span>Category Name</span>
               </DataTableRow>
@@ -358,7 +382,7 @@ const ProductList = () => {
             {currentItems.length > 0
               ? currentItems.map((item) => (
                   <DataTableItem key={item.Category_Id}>
-                    <DataTableRow className="nk-tb-col-check">
+                    {/* <DataTableRow className="nk-tb-col-check">
                       <div className="custom-control custom-control-sm custom-checkbox notext">
                         <input
                           type="checkbox"
@@ -370,7 +394,7 @@ const ProductList = () => {
                         />
                         <label className="custom-control-label" htmlFor={item.id + "uid1"}></label>
                       </div>
-                    </DataTableRow>
+                    </DataTableRow> */}
                     <DataTableRow size="sm">
                       <span className="tb-product">
                         <img src={`http://localhost:5000/${item.Image}`} alt="product" className="thumb" />
@@ -444,7 +468,7 @@ const ProductList = () => {
                                     href="#remove"
                                     onClick={(ev) => {
                                       ev.preventDefault();
-                                      deleteProduct(item.id);
+                                      deleteCategory(item.Category_Id);
                                     }}
                                   >
                                     <Icon name="trash"></Icon>
@@ -461,11 +485,12 @@ const ProductList = () => {
                 ))
               : null}
           </div>
+
           <PreviewAltCard>
-            {data.length > 0 ? (
+            {category.length > 0 ? (
               <PaginationComponent
                 itemPerPage={itemPerPage}
-                totalItems={data.length}
+                totalItems={category.length}
                 paginate={paginate}
                 currentPage={currentPage}
               />
@@ -492,7 +517,7 @@ const ProductList = () => {
             <div className="p-2">
               <h5 className="title">Update Category</h5>
               <div className="mt-4">
-                <form onSubmit={handleSubmit(onEditSubmit)}>
+                <form onSubmit={handleSubmit1(onEditSubmit)}>
                   <Row className="g-3">
                     <Col size="12">
                       <div className="form-group">
@@ -503,7 +528,7 @@ const ProductList = () => {
                           <input
                             type="text"
                             name="Name"
-                            {...register("Name", {
+                            {...register1("Name", {
                               required: "this field is required.",
                             })}
                           />
@@ -520,7 +545,7 @@ const ProductList = () => {
                           <input
                             type=""
                             name="Stock"
-                            {...register("Stock", {
+                            {...register1("Stock", {
                               required: "this field is required.",
                             })}
                           />
