@@ -20,6 +20,7 @@ import {
   Row,
 } from "../../../../components/Component";
 
+import toast from "react-hot-toast";
 import {
   useCreateCategoryMutation,
   useDeleteCategoryMutation,
@@ -113,10 +114,12 @@ const ProductList = () => {
 
     console.log("formData", formData);
     try {
-      // const data = await axios.post("http://localhost:5000/api/v1/category/create-category", formData);
-      createCategory(formData);
+      const res = await createCategory(formData);
+if(res){
+  toast.success(res.data.message)
+}
     } catch (error) {
-      console.log("Error", error);
+      toast.error(error.message)
     }
 
     setFiles([]);
@@ -131,17 +134,19 @@ const ProductList = () => {
     formState: { errors: errors1 },
   } = useForm();
 
-  // const onEditSubmit = async (data1) => {
+  // const onEditSubmit = async (data) => {
   //   const formData = new FormData();
-  //   formData.append("Name", data1.Name);
-  //   formData.append("Stock", data1.Stock);
+  //   formData.append("Name", data.Name);
+  //   formData.append("Stock", data.Stock);
   //   formData.append("Image", image);
 
   //   console.log("formData", formData);
   //   try {
   //     const data = await axios.put(`http://localhost:5000/api/v1/category/${updateId}`, formData);
 
-  //     console.log("responseData", data);
+  //     if (data) {
+  //       toast.success(data.data.message);
+  //     }
   //   } catch (error) {
   //     console.log("Error", error);
   //   }
@@ -149,7 +154,7 @@ const ProductList = () => {
   //   resetForm();
   // };
 
-  const [updateCategory] = useUpdateCategoryMutation(); // Use the generated update hook
+  const [updateResourceMutation] = useUpdateCategoryMutation(); // Use the generated update hook
 
   // Function to update a category
   const onEditSubmit = async (data) => {
@@ -158,30 +163,31 @@ const ProductList = () => {
     formData.append("Stock", data.Stock);
     formData.append("Image", image);
 
-    console.log("formData", image);
     try {
-      // const data = await axios.post("http://localhost:5000/api/v1/category/create-category", formData);
-      updateCategory({ updateId, formData });
-    } catch (error) {
-      console.log("Error", error);
-    }
+      const response = await updateResourceMutation({ id: updateId, data: formData });
 
+      if (response) {
+        toast.success(response.data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
     setFiles([]);
     resetForm();
   };
 
-  // const deleteCategory = async (id) => {
-  //   const res = await axios.delete(`http://localhost:5000/api/v1/category/${id}`);
-  //   if (res.data.status === "Success") {
-  //     toast.success(res.data.message);
-  //   }
-  // };
-
   const [deleteCategoryMutation] = useDeleteCategoryMutation();
 
   // Function to delete a category
-  const deleteCategory = (id) => {
-    deleteCategoryMutation(id);
+  const deleteCategory = async (id) => {
+    try {
+      const res = await deleteCategoryMutation(id);
+      if (res) {
+        toast.success(res.data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
   };
 
   useEffect(() => {
